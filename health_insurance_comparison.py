@@ -47,7 +47,7 @@ def calculate_thp_cost(qhe: float, in_network: bool = True):
         
     return yearly_premium + cost
 
-def calculate_hdhp_cost(qhe: float, in_network: float = True):
+def calculate_hdhp_cost(qhe: float, in_network: bool = True):
     if in_network:
         deductible = HDHP_DEDUCTIBLE_IN
         max_out_pocket = HDHP_MAX_OUT_POCKET_IN
