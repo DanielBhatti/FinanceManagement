@@ -79,20 +79,21 @@ def calculate_paycheck_breakdown_with_bonus(payment_frequency: PaymentFrequency,
 
 tax_year = 2024
 is_in_nyc = False
+payment_frequency = PaymentFrequency.BIMONTHLY
 
 paycheck_amount, deductions = calculate_paycheck_breakdown(
-    PaymentFrequency.BIMONTHLY,
+    payment_frequency,
     year=2024,
-    salary_income=240000,
+    salary_income=193_000,
     investment_income=0.0,
-    pre_tax_401k=23000,
-    roth_401k=40200,
-    pre_tax_hsa=2650,
-    pre_tax_commuter=2400,
+    pre_tax_401k=23_000,
+    roth_401k=40_200,
+    pre_tax_hsa=2_650,
+    pre_tax_commuter=2_400,
     employer_match_rate=0.04,
     is_in_nyc=False
 )
 
-print(f"Paycheck amount per period: ${paycheck_amount:.2f}")
+print(f"Paycheck amount per period {payment_frequency}: ${paycheck_amount:.2f}")
 for deduction, amount in deductions.items():
     print(f"{deduction}: ${amount:.2f}")
