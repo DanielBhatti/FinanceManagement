@@ -75,7 +75,7 @@ def calculate_total_taxes(income):
     return total_tax, federal_tax, medicare_tax, social_security_tax, ny_state_tax
 
 # Example income
-income = 24308
+income = 148_000
 
 total_tax, federal_tax, medicare_tax, social_security_tax, ny_state_tax = calculate_total_taxes(income)
 print(f"Total Tax: ${total_tax:.2f}")

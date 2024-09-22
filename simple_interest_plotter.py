@@ -42,8 +42,8 @@ def simulate_loan_repayment(principal, annual_interest_rate, loan_term_years):
 
     return months, remaining_principal, total_interest_paid, total_amount_paid, monthly_payment, current_total_interest_paid, current_total_amount_paid
 
-principal = 42_755
-annual_interest_rate = 0.0699
+principal = 37000
+annual_interest_rate = 0.039
 loan_term_years = 4
 
 months, remaining_principal, total_interest_paid, total_amount_paid, monthly_payment, final_total_interest_paid, final_total_amount_paid = simulate_loan_repayment(

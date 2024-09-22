@@ -32,7 +32,7 @@ def calculate_ny_paid_family_leave_tax(year: int, magi: float): return min(magi 
 
 def calculate_ny_disability_employee_tax(magi: float): return min(magi * 0.005, 0.60*52)
 
-def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int, salary_income: float, investment_income: float, pre_tax_401k: float, roth_401k: float, pre_tax_hsa: float, pre_tax_commuter: float, employer_match_rate: float, is_in_nyc: bool):
+def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int, salary_income: float, investment_income: float, pre_tax_401k: float, roth_401k: float, pre_tax_hsa: float, pre_tax_commuter: float, employer_match_rate: float, is_in_nyc: bool) -> dict[str, float]:
     total_pre_tax_deductions = pre_tax_401k + pre_tax_hsa + pre_tax_commuter
 
     adjusted_income = salary_income + investment_income - total_pre_tax_deductions
@@ -54,7 +54,9 @@ def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int,
 
     employer_match_401k = min(LIMITS_401k[year][0], (pre_tax_401k + roth_401k)) * employer_match_rate / payment_frequency.value
 
-    deductions = {
+    return {
+        "Net Income Per Period (Post-Tax)": paycheck_per_period,
+        "Net Income Per Period (Post-Tax/Contributions)": paycheck_per_period,
         "Federal Tax": federal_taxes / payment_frequency.value,
         "State Tax": state_taxes / payment_frequency.value,
         "NY PFL Tax": ny_pfl_taxes / payment_frequency.value,
@@ -70,21 +72,19 @@ def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int,
         "Pre-Tax Commuter": pre_tax_commuter / payment_frequency.value
     }
 
-    return paycheck_per_period, deductions
-
-def calculate_paycheck_breakdown_with_bonus(payment_frequency: PaymentFrequency, year: int, salary_income: float, bonus_income: float, investment_income: float, pre_tax_401k: float, roth_401k: float, pre_tax_hsa: float, pre_tax_commuter: float, employer_match_rate: float, is_in_nyc: bool):
-    paycheck_per_period, deductions = calculate_paycheck_breakdown(payment_frequency, year, salary_income + bonus_income, investment_income, pre_tax_401k, roth_401k, pre_tax_hsa, pre_tax_commuter, employer_match_rate, is_in_nyc)
+# def calculate_paycheck_breakdown_with_bonus(payment_frequency: PaymentFrequency, year: int, salary_income: float, bonus_income: float, investment_income: float, pre_tax_401k: float, roth_401k: float, pre_tax_hsa: float, pre_tax_commuter: float, employer_match_rate: float, is_in_nyc: bool):
+#     paycheck_per_period, deductions = calculate_paycheck_breakdown(payment_frequency, year, salary_income + bonus_income, investment_income, pre_tax_401k, roth_401k, pre_tax_hsa, pre_tax_commuter, employer_match_rate, is_in_nyc)
     
-    return paycheck_per_period  / payment_frequency.value, deductions
+#     return paycheck_per_period  / payment_frequency.value, deductions
 
 tax_year = 2024
 is_in_nyc = False
 payment_frequency = PaymentFrequency.BIMONTHLY
 
-paycheck_amount, deductions = calculate_paycheck_breakdown(
+breakdown = calculate_paycheck_breakdown(
     payment_frequency,
     year=2024,
-    salary_income=193_000,
+    salary_income=145_000,
     investment_income=0.0,
     pre_tax_401k=23_000,
     roth_401k=40_200,
@@ -94,6 +94,6 @@ paycheck_amount, deductions = calculate_paycheck_breakdown(
     is_in_nyc=False
 )
 
-print(f"Paycheck amount per period {payment_frequency}: ${paycheck_amount:.2f}")
-for deduction, amount in deductions.items():
-    print(f"{deduction}: ${amount:.2f}")
+print(f"Payment Frequency: {payment_frequency}")
+for breakdown, amount in breakdown.items():
+    print(f"{breakdown}: ${amount:.2f}")
