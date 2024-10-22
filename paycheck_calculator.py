@@ -32,31 +32,34 @@ def calculate_ny_paid_family_leave_tax(year: int, magi: float): return min(magi 
 
 def calculate_ny_disability_employee_tax(magi: float): return min(magi * 0.005, 0.60*52)
 
-def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int, salary_income: float, investment_income: float, pre_tax_401k: float, roth_401k: float, pre_tax_hsa: float, pre_tax_commuter: float, employer_match_rate: float, is_in_nyc: bool) -> dict[str, float]:
+def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int, salary_income: float, investment_income: float, pre_tax_401k: float, roth_401k: float, pre_tax_hsa: float, pre_tax_commuter: float, employer_max_match_rate: float, is_in_nyc: bool) -> dict[str, float]:
     total_pre_tax_deductions = pre_tax_401k + pre_tax_hsa + pre_tax_commuter
-
     adjusted_income = salary_income + investment_income - total_pre_tax_deductions
     medicare_income = salary_income + investment_income - pre_tax_hsa - pre_tax_commuter
 
-    federal_taxes = calculate_income_taxes(adjusted_income, FEDERAL_TAX_BRACKETS[tax_year])
-    state_taxes = calculate_income_taxes(adjusted_income, STATE_TAX_BRACKETS[tax_year])
+    federal_taxes = calculate_income_taxes(adjusted_income, FEDERAL_TAX_BRACKETS[year])
+    state_taxes = calculate_income_taxes(adjusted_income, STATE_TAX_BRACKETS[year])
     ny_pfl_taxes = calculate_ny_paid_family_leave_tax(year, adjusted_income)
     ny_sdi_taxes = calculate_ny_disability_employee_tax(adjusted_income)
-    nyc_taxes = calculate_income_taxes(adjusted_income, NYC_TAX_BRACKETS[tax_year] if is_in_nyc else [])
+    nyc_taxes = calculate_income_taxes(adjusted_income, NYC_TAX_BRACKETS[year] if is_in_nyc else [])
 
     social_security_tax = calculate_social_security_tax(year, adjusted_income)
-    
     medicare_tax = calculate_medicare_tax(medicare_income)
     niit_tax = calculate_niit_tax(medicare_income, investment_income)
+    total_taxes = (federal_taxes + state_taxes + nyc_taxes + social_security_tax + 
+                   medicare_tax + ny_pfl_taxes + ny_sdi_taxes + niit_tax)
 
-    paycheck_income = adjusted_income - federal_taxes - state_taxes - nyc_taxes - social_security_tax - medicare_tax - ny_pfl_taxes - ny_sdi_taxes - roth_401k - niit_tax
-    paycheck_per_period = paycheck_income / payment_frequency.value
-
-    employer_match_401k = min(LIMITS_401k[year][0], (pre_tax_401k + roth_401k)) * employer_match_rate / payment_frequency.value
+    net_income_after_tax = adjusted_income - total_taxes
+    net_income_after_tax_contributions = net_income_after_tax - roth_401k
+    gross_income_per_period = (salary_income + investment_income) / payment_frequency.value
+    net_income_per_period_after_tax = net_income_after_tax / payment_frequency.value
+    net_income_per_period_after_tax_contributions = net_income_after_tax_contributions / payment_frequency.value
+    employer_match_401k = salary_income * min(employer_max_match_rate, (pre_tax_401k + roth_401k) / salary_income) / payment_frequency.value
 
     return {
-        "Net Income Per Period (Post-Tax)": paycheck_per_period,
-        "Net Income Per Period (Post-Tax/Contributions)": paycheck_per_period,
+        "Gross Income Per Period": gross_income_per_period,
+        "Net Income Per Period (Post-Tax)": net_income_per_period_after_tax,
+        "Net Income Per Period (Post-Tax/Contributions)": net_income_per_period_after_tax_contributions,
         "Federal Tax": federal_taxes / payment_frequency.value,
         "State Tax": state_taxes / payment_frequency.value,
         "NY PFL Tax": ny_pfl_taxes / payment_frequency.value,
@@ -72,6 +75,7 @@ def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int,
         "Pre-Tax Commuter": pre_tax_commuter / payment_frequency.value
     }
 
+
 # def calculate_paycheck_breakdown_with_bonus(payment_frequency: PaymentFrequency, year: int, salary_income: float, bonus_income: float, investment_income: float, pre_tax_401k: float, roth_401k: float, pre_tax_hsa: float, pre_tax_commuter: float, employer_match_rate: float, is_in_nyc: bool):
 #     paycheck_per_period, deductions = calculate_paycheck_breakdown(payment_frequency, year, salary_income + bonus_income, investment_income, pre_tax_401k, roth_401k, pre_tax_hsa, pre_tax_commuter, employer_match_rate, is_in_nyc)
     
@@ -84,13 +88,13 @@ payment_frequency = PaymentFrequency.BIMONTHLY
 breakdown = calculate_paycheck_breakdown(
     payment_frequency,
     year=2024,
-    salary_income=145_000,
+    salary_income=200_000,
     investment_income=0.0,
-    pre_tax_401k=23_000,
-    roth_401k=40_200,
+    pre_tax_401k=LIMITS_401k[tax_year][0],
+    roth_401k=LIMITS_401k[tax_year][1],
     pre_tax_hsa=2_650,
     pre_tax_commuter=2_400,
-    employer_match_rate=0.04,
+    employer_max_match_rate=0.03,
     is_in_nyc=False
 )
 
