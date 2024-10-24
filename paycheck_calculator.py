@@ -81,20 +81,28 @@ def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int,
     
 #     return paycheck_per_period  / payment_frequency.value, deductions
 
-tax_year = 2024
+year = 2024
 is_in_nyc = False
 payment_frequency = PaymentFrequency.BIMONTHLY
+salary_income = 200_000
+employer_max_match_rate = 0.03
+investment_income = 0.0
+pre_tax_401k = LIMITS_401k[year][0]
+roth_401k = LIMITS_401k[year][1] - LIMITS_401k[year][0] - employer_max_match_rate * salary_income
+pre_tax_hsa = 2_650
+pre_tax_commuter = 2_400
+is_in_nyc = False
 
 breakdown = calculate_paycheck_breakdown(
     payment_frequency,
-    year=2024,
-    salary_income=200_000,
-    investment_income=0.0,
-    pre_tax_401k=LIMITS_401k[tax_year][0],
-    roth_401k=LIMITS_401k[tax_year][1] - LIMITS_401k[tax_year][0],
-    pre_tax_hsa=2_650,
-    pre_tax_commuter=2_400,
-    employer_max_match_rate=0.03,
+    year,
+    salary_income,
+    investment_income,
+    pre_tax_401k,
+    roth_401k,
+    pre_tax_hsa,
+    pre_tax_commuter,
+    employer_max_match_rate,
     is_in_nyc=False
 )
 
