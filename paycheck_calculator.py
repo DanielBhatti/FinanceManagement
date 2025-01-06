@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import List, Tuple
-from tax_bracket import FEDERAL_TAX_BRACKETS, STATE_TAX_BRACKETS, NYC_TAX_BRACKETS, NY_PFL_RATE, SOCIAL_SECURITY_MAX_TAXABLE_EARNINGS, LIMITS_401k
+from tax_bracket import FEDERAL_TAX_BRACKETS_INDIVIDUAL, STATE_TAX_BRACKETS_INDIVIDUAL, NYC_TAX_BRACKETS_INDIVIDUAL, NY_PFL_RATE, SOCIAL_SECURITY_MAX_TAXABLE_EARNINGS
+from contribution_limit import LIMITS_401k_INDIVIDUAL_PRETAX, LIMITS_401k_INDIVIDUAL_TOTAL, LIMITS_401k_INDIVIDUAL_CATCHUP, LIMITS_HSA_INDIVIDUAL
 
 class PaymentFrequency(Enum):
     WEEKLY = 52
@@ -37,11 +38,11 @@ def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int,
     adjusted_income = salary_income + investment_income - total_pre_tax_deductions
     medicare_income = salary_income + investment_income - pre_tax_hsa - pre_tax_commuter
 
-    federal_taxes = calculate_income_taxes(adjusted_income, FEDERAL_TAX_BRACKETS[year])
-    state_taxes = calculate_income_taxes(adjusted_income, STATE_TAX_BRACKETS[year])
+    federal_taxes = calculate_income_taxes(adjusted_income, FEDERAL_TAX_BRACKETS_INDIVIDUAL[year])
+    state_taxes = calculate_income_taxes(adjusted_income, STATE_TAX_BRACKETS_INDIVIDUAL[year])
     ny_pfl_taxes = calculate_ny_paid_family_leave_tax(year, adjusted_income)
     ny_sdi_taxes = calculate_ny_disability_employee_tax(adjusted_income)
-    nyc_taxes = calculate_income_taxes(adjusted_income, NYC_TAX_BRACKETS[year] if is_in_nyc else [])
+    nyc_taxes = calculate_income_taxes(adjusted_income, NYC_TAX_BRACKETS_INDIVIDUAL[year] if is_in_nyc else [])
 
     social_security_tax = calculate_social_security_tax(year, adjusted_income)
     medicare_tax = calculate_medicare_tax(medicare_income)
@@ -58,8 +59,8 @@ def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int,
 
     return {
         "Gross Income Per Period": gross_income_per_period,
-        "Net Income Per Period (Post-Tax)": net_income_per_period_after_tax,
-        "Net Income Per Period (Post-Tax/Contributions)": net_income_per_period_after_tax_contributions,
+        "Net Income Per Period (Gross - Pretax)": net_income_per_period_after_tax,
+        "Net Income Per Period (Gross - Pretax - Contributions)": net_income_per_period_after_tax_contributions,
         "Federal Tax": federal_taxes / payment_frequency.value,
         "State Tax": state_taxes / payment_frequency.value,
         "NY PFL Tax": ny_pfl_taxes / payment_frequency.value,
@@ -82,15 +83,14 @@ def calculate_paycheck_breakdown(payment_frequency: PaymentFrequency, year: int,
 #     return paycheck_per_period  / payment_frequency.value, deductions
 
 year = 2024
-is_in_nyc = False
-payment_frequency = PaymentFrequency.BIMONTHLY
-salary_income = 200_000
+payment_frequency = PaymentFrequency.BIWEEKLY
+salary_income = 225_000
 employer_max_match_rate = 0.03
 investment_income = 0.0
-pre_tax_401k = LIMITS_401k[year][0]
-roth_401k = LIMITS_401k[year][1] - LIMITS_401k[year][0] - employer_max_match_rate * salary_income
-pre_tax_hsa = 2_650
-pre_tax_commuter = 2_400
+pre_tax_401k = 0#LIMITS_401k_INDIVIDUAL_PRETAX[year] + LIMITS_401k_INDIVIDUAL_CATCHUP[year]
+roth_401k = 0#LIMITS_401k_INDIVIDUAL_TOTAL[year] - LIMITS_401k_INDIVIDUAL_PRETAX[year] - employer_max_match_rate * salary_income
+pre_tax_hsa = LIMITS_HSA_INDIVIDUAL[year] - 850
+pre_tax_commuter = 0
 is_in_nyc = False
 
 breakdown = calculate_paycheck_breakdown(
@@ -103,7 +103,7 @@ breakdown = calculate_paycheck_breakdown(
     pre_tax_hsa,
     pre_tax_commuter,
     employer_max_match_rate,
-    is_in_nyc=False
+    is_in_nyc=is_in_nyc
 )
 
 print(f"Payment Frequency: {payment_frequency}")

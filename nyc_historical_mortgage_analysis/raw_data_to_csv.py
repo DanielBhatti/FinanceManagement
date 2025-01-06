@@ -23,8 +23,8 @@ def read_data(file_path):
         return None
 
 # Directory containing your files
-raw_data_dir_path = r'C:\Users\bhatt\repos\nyc_historical_mortgage_analysis\mortgage_data_raw'
-csv_dir_path = r"C:\Users\bhatt\repos\nyc_historical_mortgage_analysis\mortgage_data_csv"
+raw_data_dir_path = r'.\nyc_historical_mortgage_analysis\mortgage_data_raw'
+csv_dir_path = r".\nyc_historical_mortgage_analysis\mortgage_data_csv"
 
 pattern = r"(\d{4})_(queens|manhattan|bronx|brooklyn|si)\.xls"
 
